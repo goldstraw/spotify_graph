@@ -1,3 +1,5 @@
 spotify_graph_bin/
 *.mp4
 *.json
+data.zip
+generate_fake_data.py

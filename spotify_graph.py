@@ -147,6 +147,10 @@ def load_data():
         if file.startswith("StreamingHistory") and file.endswith(".json"):
             files.append(file)
 
+    if len(files) == 0:
+        print("No StreamingHistory files found in the working directory.")
+        exit()
+
     # Sort the files by the number at the end
     files.sort(key=lambda x: int(x.split('.')[0][-1]))
 
