@@ -70,18 +70,20 @@ def generate_plots(all_artists, proportions, bin_size, frames_per_bin,
 
                 if max(y) > 0:
                     colours = [
-                        "#02d7f2", "#f2e900", "#007aff", "#ff1111", "#980BBF", "#024059",
+                        "#02d7f2", "#f2e900", "#007aff", "#ff5500", "#980BBF", "#FF7700",
                         "#2BF0FB", "#F2E307", "#F2CC0F", "#E93CAC", "#1E22AA", "#59CBE8",
                         "#00BCE1", "#ffd319", "#ff901f", "#ff2975", "#f222ff", "#8c1eff",
                         "#ff9a00", "#01ff1f", "#e3ff00", "#F2E50B", "#21B20C", "#FF7F50",
-                        "#FFFFFF"
+                        "#FFFFFF", "#990000", "#FF7F50", "#00FF00", "#00FFFF", "#0000FF",
+                        "#FF00FF", "#FFD700", "#FFA500", "#FF0000", "#00FF00", "#00FFFF",
+                        "#FF0066"
                     ]
                     colour = colours[hash(artist) % len(colours)]
                     label = artist[:30] if artist in artists_to_plot else '_nolegend_'
                     ax.plot(x, y, label=label, color=colour)
             ax.set_xlabel('Week')
             ax.set_ylabel('Proportion of Listening Time')
-            ax.set_title(f'Top {shown_artists} Artists by Proportion of Listening Time ({offset_date(start_date, i*7/n)})')
+            ax.set_title(f'Top {shown_artists} Artists by Proportion of Listening Time ({offset_date(start_date, i*bin_size/n)})')
             # Clear legend
             ax.legend().remove()
             # Sort legend by proportion
@@ -144,7 +146,7 @@ def load_data():
     # Get a list of all the StreamingHistory files in the current directory
     files = []
     for file in os.listdir():
-        if file.startswith("StreamingHistory") and file.endswith(".json"):
+        if file.startswith("StreamingHistory") and file.endswith(".json") and file.split('.')[0][-1].isdigit():
             files.append(file)
 
     if len(files) == 0:
