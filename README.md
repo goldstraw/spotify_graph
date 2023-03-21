@@ -2,6 +2,7 @@
 Spotify Graph Generator is a Python project that converts raw Spotify listening data into an animated graph. The graph shows the proportion of total listening time occupied by each artist over time. The program is designed to provide users with an intuitive and interactive way to visualize their listening history over time.
 ## Example
 https://user-images.githubusercontent.com/65353874/226466808-b2c493f4-3031-49f1-a2f6-d10e57a31a94.mp4
+Example data is correlated with most streamed Spotify songs for 2017.
 
 ## Installation
 To install Spotify Graph Generator, you'll need to have pipenv installed. You can do this by running:
