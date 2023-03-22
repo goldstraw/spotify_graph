@@ -64,9 +64,9 @@ def generate_plots(all_artists, proportions, bin_size, frames_per_bin,
 
             for j, artist in enumerate(all_artists):
                 if i > m:
-                    y = [max(p[j],0) for p in proportions[i-m+1:i+1]]
+                    y = [min(max(p[j],0),1) for p in proportions[i-m+1:i+1]]
                 else:
-                    y = [max(p[j],0) for p in proportions[:i+1]]
+                    y = [min(max(p[j],0),1) for p in proportions[:i+1]]
 
                 if max(y) > 0:
                     colours = [
@@ -132,6 +132,15 @@ def group_into_bins(data, bin_size):
             bin_totals[bin_str][artist_name] += duration_min
         else:
             bin_totals[bin_str][artist_name] = duration_min
+
+    # Fill in any missing bins with zero values
+    start_time = datetime.strptime(data[0]['endTime'], '%Y-%m-%d %H:%M')
+    end_time = datetime.strptime(data[-1]['endTime'], '%Y-%m-%d %H:%M')
+    total_days = (end_time - start_time).days
+    for i in range(0, total_days, bin_size):
+        bin_str = (start_time + timedelta(days=i)).strftime('%Y-%m-%d')
+        if bin_str not in bin_totals:
+            bin_totals[bin_str] = {"": 0}
 
     # Return a list of dictionaries, one for each bin
     return [bin_totals[bin_str] for bin_str in sorted(bin_totals)]
@@ -212,7 +221,10 @@ def calculate_proportions(unfiltered_bins, bins, all_artists):
         bin_proportions = []
         for artist in all_artists:
             if artist in bins[i]:
-                bin_proportions.append(bins[i][artist] / bin_total)
+                if artist == "":
+                    bin_proportions.append(0)
+                else:
+                    bin_proportions.append(bins[i][artist] / bin_total)
             else:
                 bin_proportions.append(0)
         proportions.append(bin_proportions)
