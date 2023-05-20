@@ -60,7 +60,7 @@ def generate_plots(all_artists, proportions, bin_size, frames_per_bin,
                 x = np.linspace(1/n, (i + 2)/n, i+1)
             # Only plot top n artists for each bin
             lower_bound = sorted(current_values, reverse=True)[shown_artists]
-            artists_to_plot = [a for i,a in enumerate(all_artists) if current_values[i] > lower_bound]
+            artists_to_plot = [a for i,a in enumerate(all_artists) if current_values[i] > lower_bound and a]
 
             for j, artist in enumerate(all_artists):
                 if i > m:
@@ -89,7 +89,7 @@ def generate_plots(all_artists, proportions, bin_size, frames_per_bin,
             # Sort legend by proportion
             handles, labels = ax.get_legend_handles_labels()
             handles, labels = zip(*sorted(zip(handles, labels),
-                key=lambda x: current_values[list([art[:30] for art in all_artists]).index(x[1])], reverse=True))
+                key=lambda x: current_values[list([art[:30] for art in all_artists if art]).index(x[1])], reverse=True))
             ax.legend(handles, labels, bbox_to_anchor=(1.05, 0.5, 0.5, 0.5), loc='upper left')
 
             # Save to file, use leading zeros in filename to ensure correct order
@@ -111,7 +111,7 @@ def group_into_bins(data, bin_size):
 
     for entry in data:
         # Calculate the start of the bin
-        end_time = datetime.strptime(entry['endTime'], '%Y-%m-%d %H:%M')
+        end_time = datetime.strptime(entry['ts'], '%Y-%m-%dT%H:%M:%SZ')
         total_days = (end_time - datetime(1970,1,1)).days
         start_of_bin = end_time - timedelta(days=total_days % bin_size)
 
@@ -123,8 +123,10 @@ def group_into_bins(data, bin_size):
             bin_totals[bin_str] = {}
 
         # Get the artist name and duration of this entry
-        artist_name = entry['artistName']
-        duration_ms = entry['msPlayed']
+        artist_name = entry['master_metadata_album_artist_name']
+        if not artist_name:
+            continue
+        duration_ms = entry['ms_played']
         duration_min = duration_ms / 1000 / 60
 
         # Add the duration to the total for this artist in this bin
@@ -134,8 +136,11 @@ def group_into_bins(data, bin_size):
             bin_totals[bin_str][artist_name] = duration_min
 
     # Fill in any missing bins with zero values
-    start_time = datetime.strptime(data[0]['endTime'], '%Y-%m-%d %H:%M')
-    end_time = datetime.strptime(data[-1]['endTime'], '%Y-%m-%d %H:%M')
+    start_time = datetime.strptime(data[0]['ts'], '%Y-%m-%dT%H:%M:%SZ')
+    diff = (start_time - datetime(1970,1,1)).days
+    start_time -= timedelta(days=diff % bin_size)
+
+    end_time = datetime.strptime(data[-1]['ts'], '%Y-%m-%dT%H:%M:%SZ')
     total_days = (end_time - start_time).days
     for i in range(0, total_days, bin_size):
         bin_str = (start_time + timedelta(days=i)).strftime('%Y-%m-%d')
@@ -155,7 +160,7 @@ def load_data():
     # Get a list of all the StreamingHistory files in the current directory
     files = []
     for file in os.listdir():
-        if file.startswith("StreamingHistory") and file.endswith(".json") and file.split('.')[0][-1].isdigit():
+        if file.startswith("endsong") and file.endswith(".json") and file.split('.')[0][-1].isdigit():
             files.append(file)
 
     if len(files) == 0:
@@ -198,6 +203,7 @@ def filter_top_n_values(bin_totals, n):
         bin_top_n = sorted_artists[:n]
         # Create a new dictionary with only the top n artists
         top_n_dict = {artist: bin[artist] for artist in bin_top_n}
+        # print(top_n_dict)
         # Append the new dictionary to the list of top n values
         top_n_values.append(top_n_dict)
 
@@ -307,7 +313,7 @@ if __name__ == '__main__':
 
     # Generate frames for the video
     print("Generating frames...")
-    first_day = data[0]["endTime"][:10]
+    first_day = data[0]["ts"][:10]
     generate_plots(all_artists, proportions, bin_size, frames_per_bin, 
         first_day, max_data_points_on_plot, shown_artists)
 
