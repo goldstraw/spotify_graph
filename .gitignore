@@ -3,3 +3,10 @@ spotify_graph_bin/
 *.json
 data.zip
 generate_fake_data.py
+/bin 
+/lib 
+/lib64 
+/share 
+/include
+pyvenv.cfg
+/spo
